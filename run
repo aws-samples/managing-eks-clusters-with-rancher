@@ -1,0 +1,53 @@
+#!/bin/bash
+
+#Deploy a persistent volume for InfluxDB container
+kubectl create -f 'https://s3-us-west-2.amazonaws.com/eksdemo/influxdb-pvc.yaml?AWSAccessKeyId=AKIAIV7OKORDHB5NA47Q&Expires=1867679065&Signature=emUz8i8e475DjjVQYqLzakHhQfU%3D'
+
+sleep 10
+
+#Deploy a InfluxDB container
+kubectl create -f 'https://s3-us-west-2.amazonaws.com/eksdemo/influxdb-deploy.yaml?AWSAccessKeyId=AKIAIV7OKORDHB5NA47Q&Expires=1867679615&Signature=eTPxsLKmNTjuw5Ss12VkUNP569E%3D'
+
+sleep 10
+
+#Wait for the InfluxDB container to be ready
+while true;
+do
+output=`kubectl get pod -n ns-citibike | grep influxdb | grep Running | wc -l`
+if [[ $output -eq 0 ]]; then
+ echo "Waiting for influxdb container to become available"
+ sleep 2
+else
+ break
+fi
+done
+
+#Create a database 'coordinates' in Influxdb
+kubectl exec -n ns-citibike `kubectl get pod -n ns-citibike | grep influx | awk '{print $1}'` -- influx --execute "create database coordinates"
+
+#Deploy the citibike container which queries Citi Bike and ingests data to InfluxDB 
+#First we get the IP of InfluxDB container
+influxdbIP=`kubectl get pod -n ns-citibike -o wide | grep influxdb | awk '{print $6}'`
+
+#Second, we download the yaml file, modify it with the IP
+curl -L 'https://s3-us-west-2.amazonaws.com/eksdemo/citibike-deploy.yaml?AWSAccessKeyId=AKIAIV7OKORDHB5NA47Q&Expires=1867680466&Signature=MqhSz%2F0CHOT9nlDVND2CnsrSizA%3D' -o /tmp/citibike-deploy.yaml
+
+sed -i s#influxdbIP#$influxdbIP#g /tmp/citibike-deploy.yaml
+
+#Next we create a persistent volume in EBS to archive historical data
+kubectl create -f 'https://s3-us-west-2.amazonaws.com/eksdemo/citibike-pvc.yaml?AWSAccessKeyId=AKIAIV7OKORDHB5NA47Q&Expires=1867679733&Signature=Fxfbu6IHKHHsW%2BKU8f1Q2oKDMOI%3D'
+
+sleep 5
+
+#Lastly we launch the container
+kubectl create -f /tmp/citibike-deploy.yaml
+
+#Create a Kubernetes service with ELB to frontend the Grafana container
+kubectl create -f 'https://s3-us-west-2.amazonaws.com/eksdemo/grafana-svc.yaml?AWSAccessKeyId=AKIAIV7OKORDHB5NA47Q&Expires=1867679779&Signature=DqKWSpSJ%2FlWVHw9Wg0eJ7FX5KDc%3D'
+
+sleep 10
+
+#Finally we launch the Grafana container
+kubectl create -f 'https://s3-us-west-2.amazonaws.com/eksdemo/grafana-deploy.yaml?AWSAccessKeyId=AKIAIV7OKORDHB5NA47Q&Expires=1867679818&Signature=Ol6YM2FZuGZ%2Bxb0srA7JCsC%2Flng%3D'
+
+echo 'Done !!'

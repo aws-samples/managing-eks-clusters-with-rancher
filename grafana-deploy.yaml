@@ -1,0 +1,36 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: deploy-grafana
+  namespace: ns-citibike
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana-app
+      name: grafana-app
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+         app: grafana-app
+         name: grafana-app
+    spec:
+      containers:
+      - name: k8-grafana
+        image: jzsun/eksdemo:grafanav5
+        imagePullPolicy: Always
+        command:
+          - "/bin/bash"
+          - "-c"
+          - "sh /tmp/startup.v5.sh"
+        args:
+        - sleep
+        - "1000000"
+        securityContext:
+          privileged: true
+          capabilities:
+            add:
+             - SYS_ADMIN
+             - SYS_RESOURCE

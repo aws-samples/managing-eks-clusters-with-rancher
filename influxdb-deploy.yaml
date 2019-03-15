@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deploy-influxdb
+  namespace: ns-citibike
+spec:
+  selector:
+    matchLabels:
+      app: influxdb
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+         app: influxdb
+    spec:
+      containers:
+      - name: k8-influxdb
+        image: jzsun/eksdemo:influxdb
+        imagePullPolicy: Always
+        command:
+          - "/bin/bash"
+          - "-c"
+          - "/startup.sh"
+        args:
+        - sleep
+        - "1000000"
+        securityContext:
+          privileged: true
+          capabilities:
+            add:
+             - SYS_ADMIN
+             - SYS_RESOURCE
+        volumeMounts:
+        - mountPath: /var/lib/influxdb
+          name: awsgp2
+      volumes:
+        - name: awsgp2
+          persistentVolumeClaim:
+            claimName: influxdbvolclaim

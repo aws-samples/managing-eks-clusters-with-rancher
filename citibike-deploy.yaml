@@ -1,0 +1,46 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: deploy-citibike
+  namespace: ns-citibike
+spec:
+  selector:
+    matchLabels:
+      app: citibike
+      name: citibike
+  template:
+    metadata:
+      labels:
+         app: citibike
+         name: citibike
+    spec:
+      containers:
+      - name: k8-citibike
+        image: jzsun/eksdemo:citibike
+        imagePullPolicy: Always
+        command:
+          - "/bin/bash"
+          - "-c"
+          - "/startup.sh"
+        env:
+        - name:  INFLUXDB_SERVER
+          value: "influxdbIP"
+        - name:  INFLUXDB_PORT
+          value: "8086"
+        - name:  MNT_DIR
+          value: "/citibike"
+        - name:  QUERY_INTERVAL
+          value: "60"
+        securityContext:
+          privileged: true
+          capabilities:
+            add:
+             - SYS_ADMIN
+             - SYS_RESOURCE
+        volumeMounts:
+        - mountPath: /citibike
+          name: awsgp2-citibike
+      volumes:
+        - name: awsgp2-citibike
+          persistentVolumeClaim:
+            claimName: citivolclaim
