@@ -1,12 +1,14 @@
 #!/bin/bash
 
+gitpath=https://raw.githubusercontent.com/aws-samples/managing-eks-clusters-with-rancher/master
+
 #Deploy a persistent volume for InfluxDB container
-kubectl create -f 'https://s3-us-west-2.amazonaws.com/eksdemo/influxdb-pvc.yaml?AWSAccessKeyId=AKIAIV7OKORDHB5NA47Q&Expires=1867679065&Signature=emUz8i8e475DjjVQYqLzakHhQfU%3D'
+kubectl create -f ${gitpath}/influxdb-pvc.yaml
 
 sleep 10
 
 #Deploy a InfluxDB container
-kubectl create -f 'https://s3-us-west-2.amazonaws.com/eksdemo/influxdb-deploy.yaml?AWSAccessKeyId=AKIAIV7OKORDHB5NA47Q&Expires=1867679615&Signature=eTPxsLKmNTjuw5Ss12VkUNP569E%3D'
+kubectl create -f ${gitpath}/influxdb-deploy.yaml
 
 sleep 10
 
@@ -30,12 +32,12 @@ kubectl exec -n ns-citibike `kubectl get pod -n ns-citibike | grep influx | awk 
 influxdbIP=`kubectl get pod -n ns-citibike -o wide | grep influxdb | awk '{print $6}'`
 
 #Second, we download the yaml file, modify it with the IP
-curl -L 'https://s3-us-west-2.amazonaws.com/eksdemo/citibike-deploy.yaml?AWSAccessKeyId=AKIAIV7OKORDHB5NA47Q&Expires=1867680466&Signature=MqhSz%2F0CHOT9nlDVND2CnsrSizA%3D' -o /tmp/citibike-deploy.yaml
+curl -L ${gitpath}/citibike-deploy.yaml -o /tmp/citibike-deploy.yaml
 
 sed -i s#influxdbIP#$influxdbIP#g /tmp/citibike-deploy.yaml
 
 #Next we create a persistent volume in EBS to archive historical data
-kubectl create -f 'https://s3-us-west-2.amazonaws.com/eksdemo/citibike-pvc.yaml?AWSAccessKeyId=AKIAIV7OKORDHB5NA47Q&Expires=1867679733&Signature=Fxfbu6IHKHHsW%2BKU8f1Q2oKDMOI%3D'
+kubectl create -f ${gitpath}/citibike-pvc.yaml
 
 sleep 5
 
@@ -43,11 +45,11 @@ sleep 5
 kubectl create -f /tmp/citibike-deploy.yaml
 
 #Create a Kubernetes service with ELB to frontend the Grafana container
-kubectl create -f 'https://s3-us-west-2.amazonaws.com/eksdemo/grafana-svc.yaml?AWSAccessKeyId=AKIAIV7OKORDHB5NA47Q&Expires=1867679779&Signature=DqKWSpSJ%2FlWVHw9Wg0eJ7FX5KDc%3D'
+kubectl create -f ${gitpath}/grafana-svc.yaml
 
 sleep 10
 
 #Finally we launch the Grafana container
-kubectl create -f 'https://s3-us-west-2.amazonaws.com/eksdemo/grafana-deploy.yaml?AWSAccessKeyId=AKIAIV7OKORDHB5NA47Q&Expires=1867679818&Signature=Ol6YM2FZuGZ%2Bxb0srA7JCsC%2Flng%3D'
+kubectl create -f ${gitpath}/grafana-deploy.yaml
 
 echo 'Done !!'
