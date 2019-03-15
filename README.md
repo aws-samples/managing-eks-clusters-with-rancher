@@ -21,3 +21,11 @@ HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTIO
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ```
+
+## Prerequisites
+1. A running EKS cluster
+2. kubectl installed verified to interact with the EKS cluster
+
+## Installation
+
+curl 'https://raw.githubusercontent.com/aws-samples/managing-eks-clusters-with-rancher/master/run' | bash
