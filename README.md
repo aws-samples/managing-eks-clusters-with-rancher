@@ -28,4 +28,4 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ## Installation
 
-curl 'https://raw.githubusercontent.com/aws-samples/managing-eks-clusters-with-rancher/master/run' | bash
+See AWS opensource blog post https://aws.amazon.com/blogs/opensource/managing-eks-clusters-rancher/
